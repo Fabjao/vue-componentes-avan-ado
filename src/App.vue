@@ -4,10 +4,12 @@
     <button @click="componentSelecionado = 'Home'">Home</button>
     <button @click="componentSelecionado = 'PostLista'">Posts</button>
     <button @click="componentSelecionado = 'Sobre'">Sobre</button>
-    <p>{{componentSelecionado}}</p>
+    <button @click="componentSelecionado = 'Assincrono'">Assincrono</button>
+    <button @click="componentSelecionado = 'Contato'">Contato</button>
 
-<component :is="componentSelecionado"></component>
-
+    <keep-alive include="Sobre">
+      <component :is="componentSelecionado" v-bind="propsAtuais"></component>
+    </keep-alive>
   </div>
 </template>
 
@@ -15,11 +17,34 @@
 import PostLista from "./components/PostLista.vue";
 import Sobre from "./components/Sobre.vue";
 import Home from "./components/Home.vue";
+
+const Contato ={
+  render: h=>h({
+    name:'ContatoDados',
+    template: '<h2>Component anonimo</h2>'
+  })
+}
+
 export default {
   components: {
+    Assincrono: () => ({
+      component: new Promise((resolve, reject) => {
+        setTimeout(() => {
+          resolve(import("./components/Assincrono.vue"))
+
+         //forçando dar o erro
+         //reject("Carregamento Falhou")
+        },2000);
+      }),
+      loading: { template: "<p>Carregando..</p>" },
+      error: { template: "<p>Erro ao carregar component!</p>" },
+      delay: 200,
+      timeout: 3000
+    }),
     Home,
     PostLista,
-    Sobre
+    Sobre,
+    Contato
   },
   data() {
     return {
@@ -39,6 +64,13 @@ export default {
         }
       ]
     };
+  },
+  computed: {
+    propsAtuais() {
+      return this.componentSelecionado === "PostLista"
+        ? { posts: this.posts }
+        : {};
+    }
   }
 };
 </script>
